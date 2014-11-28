@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='cuecloud',
-      version='1.0.1',
+      version='1.0.2',
       description='Integration library for CueCloud',
       author='Cuecloud',
       author_email='info@cuecloud.com',
