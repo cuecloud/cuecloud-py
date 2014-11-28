@@ -47,10 +47,10 @@ class CueCloud(object):
         self.api_pass = api_pass
 
 
-    def _build_request(self, url, data=None):
+    def _build_request(self, url, method, data=None):
         """
         The signature is a concatenation of nonce + url + body.
-        A GET request will have no body, a POST request will.
+        `method` must be one of 'GET', 'POST', 'PUT', or 'DELETE'.
         """
         if not url:
             raise CueCloudError('A url must be specified.')
@@ -69,19 +69,21 @@ class CueCloud(object):
             'Access-Nonce': nonce,
             'Content-Type': 'application/json',
         }
-        # print headers
-        
-        if data:
-            r = requests.post(url, headers=headers, data=body)
-        else:
+            
+        if method == 'GET':
             r = requests.get(url, headers=headers)
-
+        elif method == 'POST':
+            r = requests.post(url, headers=headers, data=body)
+        elif method == 'PUT':
+            r = requests.put(url, headers=headers, data=body)
+        elif method == 'DELETE':
+            r = requests.put(url, headers=headers)
+        
         try:
             r_data = r.json()
         except: # most likely a JSONDecodeError
             raise CueCloudError(r)
-
-        print '***', r_data['Error']
+        
         return r_data
 
 
@@ -90,9 +92,10 @@ class CueCloud(object):
         This is a test method to make sure that
         the user has valid API credentials.
         '''
+        method_type = 'GET'
         method_path = 'validate/'
         url = os.path.join(self.base_url, method_path)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def get_keywords(self):
@@ -100,18 +103,20 @@ class CueCloud(object):
         This will return common keywords for Cues.
         Useful for CueCreation.
         '''
+        method_type = 'GET'
         method_path = 'cues/keywords/'
         url = os.path.join(self.base_url, method_path)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def get_balance(self):
         '''
         This will return the user's current balance, in USD.
         '''
+        method_type = 'GET'
         method_path = 'balance/'
         url = os.path.join(self.base_url, method_path)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def make_deposit(self, amount_in_usd, cc_last_four):
@@ -120,13 +125,14 @@ class CueCloud(object):
         This will depost that amount into the user's balance.
         Note, a credit card may only be added within the app. Not the API.
         """
+        method_type = 'POST'
         method_path = 'payments/deposit/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'AmountInUSD': amount_in_usd,
             'CreditCardLastFourDigits': cc_last_four
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
     
     def withdraw_funds(self, amount_in_usd=None):
@@ -137,12 +143,13 @@ class CueCloud(object):
         If no amount is specified, it will try and
         deduct the entire user's balance.
         """
+        method_type = 'POST'
         method_path = 'payments/withdraw/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'AmountInUSD': amount_in_usd,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def grant_bonus(self, cue_completion_id, amount, reason='Thanks for your hard work!', note_to_self=None):
@@ -157,6 +164,7 @@ class CueCloud(object):
         by the person who granted the bonus. An example might be: 
         "Bonus paid here on 2014-01-01 to see if it motivates better work from this person."
         """
+        method_type = 'POST'
         method_path = 'payments/bonus/'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -165,7 +173,7 @@ class CueCloud(object):
             'Reason': reason,
             'NoteToSelf': note_to_self
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def get_payments(self, payment_type=None, payment_id=None, note_to_self=None, page=None):
@@ -173,6 +181,7 @@ class CueCloud(object):
         Payment type may be one of `Deposits`, `Withdrawals`, or `Bonuses`.
         50 results will show per page.
         """
+        method_type = 'GET'
         method_path = 'payments/'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -181,46 +190,49 @@ class CueCloud(object):
             'NoteToSelf': note_to_self,
             'Page': page
         }
-        data = dict((x,y) for x,y in data.items() if y) # dont pass "None" as a string
+        data = dict((x,y) for x,y in data.items() if y)
         if data:
             url = url + '?' + urllib.urlencode(data)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def approve_cue_completion(self, cue_completion_id):
         """
         This will approve a CueCompletion that has been submitted to the user's Cue.
         """
+        method_type = 'POST'
         method_path = 'completions/approve/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'CueCompletionID': cue_completion_id,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def decline_cue_completion(self, cue_completion_id):
         """
         This will decline a CueCompletion that has been submitted to the user's Cue.
         """
+        method_type = 'POST'
         method_path = 'completions/decline/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'CueCompletionID': cue_completion_id,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def cancel_cue(self, cue_id):
         """
         This will cancel a Cue that you have posted, refunding your balance.
         """
+        method_type = 'POST'
         method_path = 'cues/cancel/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'CueID': cue_id,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def get_cue_completions(self, cue_id, cue_completion_id=None, status=None, page=None):
@@ -228,6 +240,7 @@ class CueCloud(object):
         This will return CueCompletions for a particular Cue.
         Status options for CueCompletions are `Pending`, `Accepted`, and `Declined`.
         """
+        method_type = 'GET'
         method_path = 'completions/'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -239,7 +252,7 @@ class CueCloud(object):
         data = dict((x,y) for x,y in data.items() if y)
         if data:
             url = url + '?' + urllib.urlencode(data)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def create_cue(self, title, amount, num_opportunities=1,
@@ -252,6 +265,7 @@ class CueCloud(object):
         The only required items are `title`, `amount`, and `num_opportunities` (which defaults to 1).
         An `iframe_url` can be specified if you want a user to fill out a custom form on your site.
         """
+        method_type = 'POST'
         method_path = 'cues/create'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -271,7 +285,7 @@ class CueCloud(object):
             'NoteToSelf': note_to_self,
             'Keywords': keywords,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def get_cues(self, cue_id=None, group_id=None, note_to_self=None, has_pending_cue_completions=None, status=None, page=None):
@@ -280,6 +294,7 @@ class CueCloud(object):
         `has_pending_cue_completions` is a boolean.
         `status` can be one of 'Active', 'Complete', 'Canceled', or 'Expired'
         """
+        method_type = 'GET'
         method_path = 'cues/'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -293,7 +308,7 @@ class CueCloud(object):
         data = dict((x,y) for x,y in data.items() if y)
         if data:
             url = url + '?' + urllib.urlencode(data)
-        return self._build_request(url)
+        return self._build_request(url, method_type)
 
 
     def assign_cue(self, cue_id):
@@ -302,12 +317,13 @@ class CueCloud(object):
         This will try and check-in or check-out a Cue depending
         on whether the Cue is already checked out by that user.
         """
+        method_type = 'POST'
         method_path = 'cues/assign/'
         url = os.path.join(self.base_url, method_path)
         data = {
             'CueID': cue_id,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
 
 
     def submit_cue_completion(self, assignment_id, answer_text=None, video_url=None, video_thumbnail_url=None, image_url=None, is_anonymous=None):
@@ -316,6 +332,7 @@ class CueCloud(object):
         This will submit the CueCompletion data, though
         In production the method will block any requests without an HTTP_REFERER.
         """
+        method_type = 'POST'
         method_path = 'cues/complete/'
         url = os.path.join(self.base_url, method_path)
         data = {
@@ -326,11 +343,8 @@ class CueCloud(object):
             'ImageURL': image_url,
             'IsAnonymous': is_anonymous,
         }
-        return self._build_request(url, data)
+        return self._build_request(url, method_type, data)
         
-
-
-
 
 
         
