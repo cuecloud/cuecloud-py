@@ -77,7 +77,7 @@ class CueCloud(object):
         elif method == 'PUT':
             r = requests.put(url, headers=headers, data=body)
         elif method == 'DELETE':
-            r = requests.put(url, headers=headers)
+            r = requests.delete(url, headers=headers)
         
         try:
             r_data = r.json()
