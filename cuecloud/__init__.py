@@ -258,7 +258,7 @@ class CueCloud(object):
     def create_cue(self, title, amount, num_opportunities=1,
                    description=None, is_anonymous=None, push_notification_on_cue_completion=None,
                    disallow_anonymous=None, iframe_url=None, url_notification_on_cue_completion=None,
-                   email_notification_on_cue_completion=None, limetime_in_minutes=None, 
+                   email_notification_on_cue_completion=None, lifetime_in_minutes=None, 
                    time_limit_to_complete_cue_in_minutes=None, auto_approve_cue_completion_in_minutes=None,
                    note_to_self=None, keywords=None):
         """
@@ -279,7 +279,7 @@ class CueCloud(object):
             'iFrameURL': iframe_url,
             'URLNotificationOnCueCompletion': url_notification_on_cue_completion,
             'EmailNotificationOnCueCompletion': email_notification_on_cue_completion,
-            'LifetimeInMinutes': limetime_in_minutes,
+            'LifetimeInMinutes': lifetime_in_minutes,
             'TimeLimitToCompleteCueInMinutes': time_limit_to_complete_cue_in_minutes,
             'AutoApproveCueCompletionAfterThisManyMinutes': auto_approve_cue_completion_in_minutes,
             'NoteToSelf': note_to_self,
